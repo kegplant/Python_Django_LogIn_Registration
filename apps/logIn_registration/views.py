@@ -62,7 +62,6 @@ def success(request,id):
     context={
         'user': user,
     }
-    #validate it's logged in########################################
     return render(request,'logIn_registration/success.html',context)
 
 def clear(request):

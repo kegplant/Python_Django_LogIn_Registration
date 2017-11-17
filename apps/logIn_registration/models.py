@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 from django.db import models
 import re
+import bcrypt
+
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 
@@ -8,7 +10,10 @@ from django.db import models
 class UserManager(models.Manager):
     def registration_validator(self,postData):
         errors={}
-        if len(postData['first_name'])<2:
+        users=self.filter(email=postData['email'])
+        if users:
+            errors['email']='account already exists'
+        elif len(postData['first_name'])<2:
             errors['name']='first name should be no fewer than 2 characters!'
         elif len(postData['last_name'])<2:
             errors['name']='last name should be no fewer than 2 characters!'
@@ -26,7 +31,9 @@ class UserManager(models.Manager):
         else:
             users=Users.objects.filter(email=postData['email'])
             if not users:
-                errors['email']='account does not exist'
+                errors['email']='something wrong about email / password'
+            elif not bcrypt.checkpw(postData['password'].encode(),users[0].password.encode()):
+                errors['email']='something wrong about email / password'
         return errors
 
 # Create your models here.
