@@ -5,8 +5,15 @@ import bcrypt
 from django.contrib.messages import error
 
 # the index function is called when root is visited
+def loggedIn(request):
+    try:
+        request.session['user_id']
+        return True
+    except:
+        return False
 def index(request):
     context={
+        'status':loggedIn(request)
     }
     #return HttpResponse(response)
     return render(request,'logIn_registration/index.html',context)
@@ -25,6 +32,7 @@ def register(request):
         password=request.POST['password']
         hash1=bcrypt.hashpw(password.encode(),bcrypt.gensalt())
         user=Users.objects.create(first_name=first_name,last_name=last_name,email=email,password=hash1)
+        request.session['user_id']=user.id
         return redirect('/'+str(user.id)+'/success')
 def logIn(request):
     #if wrong: credential / existance, flash message
@@ -36,6 +44,7 @@ def logIn(request):
     else:
         user=Users.objects.filter(email=request.POST['email'])[0]
         if bcrypt.checkpw(request.POST['password'].encode(),user.password.encode()):
+            request.session['user_id']=user.id
             return redirect('/'+str(user.id)+'/success')
         #flash vague message//wrong password   
 def process(request):
@@ -47,6 +56,8 @@ def process(request):
     return redirect('/')
 
 def success(request,id):
+    if not loggedIn(request):
+        return redirect('/')
     user=Users.objects.get(id=id)
     context={
         'user': user,
@@ -56,4 +67,8 @@ def success(request,id):
 
 def clear(request):
     Users.objects.all().delete()
+    return redirect('/')
+def logOut(request):
+    for key in request.session.keys():
+        del request.session[key]
     return redirect('/')

@@ -5,4 +5,5 @@ urlpatterns=[
     url(r'^process$', views.process),
     url(r'^clear$', views.clear),
     url(r'^(?P<id>\d+)/success$', views.success),
+    url(r'^logOut$', views.logOut),
 ]
